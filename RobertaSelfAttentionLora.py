@@ -18,12 +18,11 @@ class RobertaSelfAttentionLora(RobertaSelfAttention):
 
 
     def query_lora(self, x):
-        delta_w = self.query_B @ self.query_A
-        return self.query(x) + functional.linear(x, delta_w)
+        # delta_w = self.query_B @ self.query_A
+        return self.query(x) + functional.linear(x, self.query_B @ self.query_A)
 
     def value_lora(self, x):
-        delta_w = self.value_B @ self.value_A
-        return self.value(x) + functional.linear(x, delta_w)
+        return self.value(x) + functional.linear(x, self.query_B @ self.query_A)
 
     def forward(
             self,
