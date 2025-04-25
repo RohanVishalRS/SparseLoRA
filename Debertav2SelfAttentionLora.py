@@ -28,13 +28,13 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
         return self.value_proj(x) + functional.linear(x, delta_w)
 
     def forward(
-            self,
-            hidden_states,
-            attention_mask,
-            output_attentions=False,
-            query_states=None,
-            relative_pos=None,
-            rel_embeddings=None,
+        self,
+        hidden_states,
+        attention_mask,
+        output_attentions=False,
+        query_states=None,
+        relative_pos=None,
+        rel_embeddings=None,
     ):
         """
         Call the module
@@ -67,9 +67,9 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
         """
         if query_states is None:
             query_states = hidden_states
-        query_layer = self.transpose_for_scores(self.query_proj(query_states), self.num_attention_heads)
+        query_layer = self.transpose_for_scores(self.query_lora(query_states), self.num_attention_heads)
         key_layer = self.transpose_for_scores(self.key_proj(hidden_states), self.num_attention_heads)
-        value_layer = self.transpose_for_scores(self.value_proj(hidden_states), self.num_attention_heads)
+        value_layer = self.transpose_for_scores(self.value_lora(hidden_states), self.num_attention_heads)
 
         rel_att = None
         # Take the dot product between "query" and "key" to get the raw attention scores.

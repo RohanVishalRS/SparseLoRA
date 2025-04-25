@@ -24,9 +24,10 @@ def train_model(dataset, model, epochs=3):
 
     for epoch in range(epochs):
         for batch in dataset:
+            print(batch.keys())
             batch = {k: v.to(device) for k, v in batch.items()}
             logits = model(input_ids=batch["input_ids"], attention_mask=batch["attention_mask"])
-            loss = torch.nn.functional.cross_entropy(logits, batch["label"])
+            loss = torch.nn.functional.cross_entropy(logits, batch["labels"])
 
             loss.backward()
             optimizer.step()
@@ -52,16 +53,16 @@ def evaluate_model(dataset, model, task):
             logits = model(input_ids=batch["input_ids"], attention_mask=batch["attention_mask"])
 
             if task == "stsb":
-                loss = torch.nn.MSELoss()(logits.squeeze(), batch["label"].float())
+                loss = torch.nn.MSELoss()(logits.squeeze(), batch["labels"].float())
                 predictions = logits.squeeze()
             else:
-                loss = torch.nn.CrossEntropyLoss()(logits, batch["label"])
+                loss = torch.nn.CrossEntropyLoss()(logits, batch["labels"])
                 predictions = torch.argmax(logits, dim=-1)
 
-            total_loss += loss.item() * len(batch["label"])
-            total_samples += len(batch["label"])
+            total_loss += loss.item() * len(batch["labels"])
+            total_samples += len(batch["labels"])
 
-        metric.add_batch(predictions=predictions, references=batch["label"])
+        metric.add_batch(predictions=predictions, references=batch["labels"])
 
     eval_metrics = metric.compute()
     avg_loss = total_loss / total_samples

@@ -35,16 +35,16 @@ class DebertaV2Lora(nn.Module):
     def _get_num_classes(self, task_name):
         """Return output dimension based on task."""
         task_to_num_labels = {
-            "cola": 2,    # Binary (linguistic acceptability)
-            "sst2": 2,    # Binary (sentiment)
-            "mrpc": 2,    # Binary (paraphrase)
-            "qqp": 2,     # Binary (paraphrase)
-            "stsb": 1,    # Regression (similarity score)
-            "mnli": 3,    # 3-class (entailment)
-            "qnli": 2,    # Binary (question-answer entailment)
-            "rte": 2,     # Binary (entailment)
-            "wnli": 2,    # Binary (coreference)
-            "ax": 3,      # 3-class (MNLI variant)
+            "cola": 2,  # Binary (linguistic acceptability)
+            "sst2": 2,  # Binary (sentiment)
+            "mrpc": 2,  # Binary (paraphrase)
+            "qqp": 2,  # Binary (paraphrase)
+            "stsb": 1,  # Regression (similarity score)
+            "mnli": 3,  # 3-class (entailment)
+            "qnli": 2,  # Binary (question-answer entailment)
+            "rte": 2,  # Binary (entailment)
+            "wnli": 2,  # Binary (coreference)
+            "ax": 3,  # 3-class (MNLI variant)
         }
         return task_to_num_labels.get(task_name, 2)  # Default to binary
 
@@ -90,17 +90,19 @@ class DebertaV2Lora(nn.Module):
         return logits
 
     def preprocess_function(self, examples):
-            if self.task_name in ["cola", "sst2"]:
-                return self.tokenizer(examples["sentence"], truncation=True, padding="max_length")
-            elif self.task_name in ["mrpc", "stsb"]:
-                return self.tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length")
-            elif self.task_name in ["qqp"]:
-                return self.tokenizer(examples["question1"], examples["question2"], truncation=True, padding="max_length")
-            elif self.task_name in ["mnli", "mnli_mismatched", "mnli_matched"]:
-                return self.tokenizer(examples["premise"], examples["hypothesis"], truncation=True, padding="max_length")
-            elif self.task_name in ["qnli"]:
-                return self.tokenizer(examples["question"], examples["sentence"], truncation=True, padding="max_length")
-            elif self.task_name in ["rte", "wnli"]:
-                return self.tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length")
-            else:
-                raise ValueError(f"Unknown task: {self.task_name}")
+        if self.task_name in ["cola", "sst2"]:
+            result = self.tokenizer(examples["sentence"], truncation=True, padding="max_length")
+        elif self.task_name in ["mrpc", "stsb"]:
+            result = self.tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length")
+        elif self.task_name in ["qqp"]:
+            result = self.tokenizer(examples["question1"], examples["question2"], truncation=True, padding="max_length")
+        elif self.task_name in ["mnli", "mnli_mismatched", "mnli_matched"]:
+            result = self.tokenizer(examples["premise"], examples["hypothesis"], truncation=True, padding="max_length")
+        elif self.task_name in ["qnli"]:
+            result = self.tokenizer(examples["question"], examples["sentence"], truncation=True, padding="max_length")
+        elif self.task_name in ["rte", "wnli"]:
+            result = self.tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length")
+        else:
+            raise ValueError(f"Unknown task: {self.task_name}")
+        result["label"] = examples["label"]
+        return result
