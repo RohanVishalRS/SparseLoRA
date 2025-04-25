@@ -21,7 +21,7 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
 
     def value_lora(self, x):
         delta_w = self.value_B @ self.value_A
-        return self.value(x) + functional.linear(x, delta_w)
+        return self.value_proj(x) + functional.linear(x, delta_w)
 
     def forward(
         self,
