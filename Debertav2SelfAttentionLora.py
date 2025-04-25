@@ -16,11 +16,11 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
 
 
     def query_lora(self, x):
-        delta_w = self.query_A @ self.query_B
+        delta_w = self.query_B @ self.query_A
         return self.query_proj(x) + functional.linear(x, delta_w)
 
     def value_lora(self, x):
-        delta_w = self.value_A @ self.value_B
+        delta_w = self.value_B @ self.value_A
         return self.value(x) + functional.linear(x, delta_w)
 
     def forward(
