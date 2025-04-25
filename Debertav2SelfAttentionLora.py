@@ -3,6 +3,10 @@ from torch import nn
 from transformers.models.deberta_v2.modeling_deberta_v2 import DisentangledSelfAttention
 from torch.nn import functional
 
+@torch.jit.script
+def scaled_size_sqrt(query_layer: torch.Tensor, scale_factor: int):
+    return torch.sqrt(torch.tensor(query_layer.size(-1), dtype=torch.float) * scale_factor)
+
 class DisentangledSelfAttentionLora(DisentangledSelfAttention):
     def __init__(self, config, rank=8):
         super().__init__(config)
@@ -24,13 +28,13 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
         return self.value_proj(x) + functional.linear(x, delta_w)
 
     def forward(
-        self,
-        hidden_states,
-        attention_mask,
-        output_attentions=False,
-        query_states=None,
-        relative_pos=None,
-        rel_embeddings=None,
+            self,
+            hidden_states,
+            attention_mask,
+            output_attentions=False,
+            query_states=None,
+            relative_pos=None,
+            rel_embeddings=None,
     ):
         """
         Call the module
@@ -63,9 +67,9 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
         """
         if query_states is None:
             query_states = hidden_states
-        query_layer = self.transpose_for_scores(self.query_lora(query_states), self.num_attention_heads)
+        query_layer = self.transpose_for_scores(self.query_proj(query_states), self.num_attention_heads)
         key_layer = self.transpose_for_scores(self.key_proj(hidden_states), self.num_attention_heads)
-        value_layer = self.transpose_for_scores(self.value_lora(hidden_states), self.num_attention_heads)
+        value_layer = self.transpose_for_scores(self.value_proj(hidden_states), self.num_attention_heads)
 
         rel_att = None
         # Take the dot product between "query" and "key" to get the raw attention scores.
@@ -74,7 +78,7 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
             scale_factor += 1
         if "p2c" in self.pos_att_type:
             scale_factor += 1
-        scale = self.scaled_size_sqrt(query_layer, scale_factor)
+        scale = scaled_size_sqrt(query_layer, scale_factor)
         attention_scores = torch.bmm(query_layer, key_layer.transpose(-1, -2) / scale.to(dtype=query_layer.dtype))
         if self.relative_attention:
             rel_embeddings = self.pos_dropout(rel_embeddings)
