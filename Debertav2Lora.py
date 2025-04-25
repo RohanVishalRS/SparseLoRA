@@ -16,6 +16,7 @@ class DebertaV2Lora(nn.Module):
         state_dict = self.model.state_dict()
         self.model_config = self.model.config
         self.lora_rank = lora_rank
+        self.task_name = task_name
 
         # Task-specific configuration
         self.num_classes = self._get_num_classes(task_name)

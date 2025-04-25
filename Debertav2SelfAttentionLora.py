@@ -17,7 +17,7 @@ class DisentangledSelfAttentionLora(DisentangledSelfAttention):
 
     def query_lora(self, x):
         delta_w = self.query_A @ self.query_B
-        return self.query(x) + functional.linear(x, delta_w)
+        return self.query_proj(x) + functional.linear(x, delta_w)
 
     def value_lora(self, x):
         delta_w = self.value_A @ self.value_B
